@@ -212,4 +212,13 @@ marimo/_lsp/
 __marimo__/
 
 # Streamlit
-.streamlit/secrets.toml
+.streamlit/secrets.tomlbackend/.env
+backend/db.sqlite3
+backend/venv/
+backend/__pycache__/
+__pycache__/
+.pytest_cache/
+*.pyc
+backend/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
