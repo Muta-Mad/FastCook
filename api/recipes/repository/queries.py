@@ -57,3 +57,4 @@ def get_ingredients_query():
 
 def get_ingredient_query(id):
     return select(Ingredient).where(Ingredient.id == id)
+

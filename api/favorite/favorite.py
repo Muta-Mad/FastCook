@@ -19,6 +19,7 @@ async def add_favorite(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
+    """Добавить в избранное"""
     result = await session.execute(get_recipe(id))
     recipe = result.scalar_one_or_none()
     if not recipe:
@@ -38,6 +39,7 @@ async def delete_shopping_cart(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
+    """Удалить из избранного"""
     result = await session.execute(get_recipe(id))
     recipe = result.scalar_one_or_none()
     if not recipe:

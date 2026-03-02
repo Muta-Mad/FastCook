@@ -9,6 +9,7 @@ from api.favorite.models import Favorite
 
 
 class Recipe(IdPkMixin, Base):
+    """Модель рецепта"""
     __tablename__ = 'recipes'
     author_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
     author: Mapped['User'] = relationship(back_populates='recipes')
@@ -51,6 +52,7 @@ class Recipe(IdPkMixin, Base):
 
 
 class Tag(IdPkMixin, Base):
+    """Модель тега"""
     __tablename__ = 'tags'
     name: Mapped[str] = mapped_column(String(32))
     slug: Mapped[str] = mapped_column(
@@ -64,6 +66,7 @@ class Tag(IdPkMixin, Base):
     
 
 class Ingredient(IdPkMixin, Base):
+    """Модель Ингредиента"""
     __tablename__ = 'ingredients'
     __table_args__ = (
         UniqueConstraint('name', 'measurement_unit', name='unique_ingredient'),
@@ -77,6 +80,7 @@ class Ingredient(IdPkMixin, Base):
 
 
 class RecipeIngredient(IdPkMixin, Base):
+    """Модель для связи рецепта и ингредиента"""
     __tablename__ = 'recipe_ingredients'
     recipe_id: Mapped[int] = mapped_column(ForeignKey('recipes.id', ondelete='CASCADE'))
     ingredient_id: Mapped[int] = mapped_column(ForeignKey('ingredients.id', ondelete='CASCADE'))
@@ -88,6 +92,7 @@ class RecipeIngredient(IdPkMixin, Base):
 
 
 class RecipeTag(Base):
+    """Модель для связи рецепта и тега"""
     __tablename__ = 'recipe_tags'
     recipe_id: Mapped[int] = mapped_column(ForeignKey('recipes.id', ondelete='CASCADE'), primary_key=True)
     tag_id: Mapped[int] = mapped_column(ForeignKey('tags.id', ondelete='CASCADE'), primary_key=True)

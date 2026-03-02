@@ -31,6 +31,7 @@ async def get_recipes(
     author: int | None = Query(None),
     tags: list[str] | None = Query(None),
 ):
+    """Получение списка рецептов"""
     query = get_recipes_query(
         current_user=current_user,
         is_favorited=is_favorited,
@@ -67,6 +68,7 @@ async def download_shopping_cart(
     current_user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_db),
 ):
+    """Скачивание списка покупок"""
     ingredients = await get_shopping_cart_ingredients(
         current_user.id,
         session
@@ -89,7 +91,8 @@ async def get_recipe(
     id: int,
     session: AsyncSession = Depends(get_db),
     current_user: User  = Depends(get_current_user_optional),
-) -> RecipeRead: 
+) -> RecipeRead:
+    """Получение рецепта по id"""
     recipe = await get_full_recipe(session, id)
     if not recipe:
         GlobalError.not_found('Рецепт с таким id не найден')
@@ -107,6 +110,7 @@ async def delete_recipe(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Удаление рецепта по id"""
     recipe = await get_owned_recipe(session, id, current_user.id)
     await session.delete(recipe)
     await session.commit()
@@ -117,6 +121,7 @@ async def recipe_create(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     ):
+    """Создание рецепта"""
     await validate_ingredients(session, data.ingredients)
     await validate_tags(session, data.tags)
     recipe = Recipe(
@@ -141,6 +146,7 @@ async def recipe_update(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    """Обновление рецепта по id"""
     await validate_ingredients(session, new_data.ingredients)
     await validate_tags(session, new_data.tags)
     recipe = await get_owned_recipe(session, id, current_user.id)
@@ -171,6 +177,7 @@ async def get_short_link(
     request: Request,
     session: AsyncSession = Depends(get_db)
 ):
+    """Получение короткой ссылки на рецепт"""
     recipe = await get_full_recipe(session, id)
     short_link = str(request.url_for(
         'redirect_short_link',

@@ -13,7 +13,7 @@ router = APIRouter(prefix='/tags', tags=['Tags'])
 @router.get('/', response_model=list[TagRead])
 async def get_tags(
     session: AsyncSession = Depends(get_db)):
-
+    """Получение списка тегов"""
     query = get_tags_query()
     result = await session.execute(query)
     tags = result.scalars().all()
@@ -23,7 +23,7 @@ async def get_tags(
 async def get_tag(
     id: int,
     session: AsyncSession = Depends(get_db)):
-
+    """Получение тега по id"""
     query = get_tag_query(id)
     result = await session.execute(query)
     tag = result.scalar_one_or_none()

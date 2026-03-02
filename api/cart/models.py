@@ -6,6 +6,7 @@ from api.core.idmixin import IdPkMixin
 
 
 class ShoppingCart(Base, IdPkMixin):
+    """Модель корзины"""
     __tablename__ = 'shopping_carts'
     __table_args__ = (
         UniqueConstraint(

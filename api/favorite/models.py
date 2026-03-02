@@ -6,6 +6,7 @@ from api.core.idmixin import IdPkMixin
 
 
 class Favorite(Base, IdPkMixin):
+    """Модель избранного"""
     __tablename__ = 'favorites'
     __table_args__ = (
         UniqueConstraint(

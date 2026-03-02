@@ -20,7 +20,7 @@ async def add_shopping_cart(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-
+    """Добавить в корзину"""
     result = await session.execute(get_recipe(id))
     recipe = result.scalar_one_or_none()
     if not recipe:
@@ -43,6 +43,7 @@ async def delete_shopping_cart(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):  
+    """Удалить из корзины"""
     result = await session.execute(get_recipe(id))
     recipe = result.scalar_one_or_none()
     if not recipe:
