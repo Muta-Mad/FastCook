@@ -22,5 +22,5 @@ class BaseRepository:
         await self.save(obj)
 
 async def get_repository(session: AsyncSession = Depends(get_db)):
-    """создает зависимость для BaseRepository""" #TODO можно будет вынести в модуль dependensis
+    """создает зависимость для BaseRepository"""
     return BaseRepository(session)

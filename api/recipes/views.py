@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, Request, status, Query
+from fastapi import APIRouter, Depends, Request, Response, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.cart.repository import get_shopping_cart_ingredients
 from api.core.base_paginator import Paginator
 from api.core.exceptions import GlobalError
 from api.core.paginate_schemas import Page
@@ -57,6 +58,30 @@ async def get_recipes(
         next=paginated_data['next'],
         previous=paginated_data['previous'],
         results=recipes_out
+    )
+
+@router.get('/download_shopping_cart/')
+async def download_shopping_cart(
+    current_user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+):
+    ingredients = await get_shopping_cart_ingredients(
+        current_user.id,
+        session
+    )
+    if not ingredients:
+        GlobalError.bad_request('Список покупок пуст')
+    lines = []
+    for name, unit, total_amount in ingredients:
+        line = f'- {name}: {total_amount} {unit}'
+        lines.append(line)
+    shopping_list_text = '\n'.join(lines)
+    return Response(
+        content=shopping_list_text,
+        media_type="text/plain",
+        headers={
+            'Content-Disposition': 'attachment; filename=shopping_list.txt'
+        }
     )
 
 @router.get('/{id}/', response_model=RecipeRead)
