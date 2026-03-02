@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.core.database import get_db
-from api.recipes.repositories import get_tag_query, get_tags_query, map_tag_to_read
+from api.recipes.repository.mappers import map_tag_to_read
+from api.recipes.repository.queries import get_tag_query, get_tags_query
 from api.recipes.schemas import TagRead
 from api.core.exceptions import GlobalError
 

@@ -6,12 +6,14 @@ from api.core.base_paginator import Paginator
 from api.core.exceptions import GlobalError
 from api.core.paginate_schemas import Page
 from api.dependencies import get_current_user, get_current_user_optional
-from api.recipes.models import Recipe, RecipeIngredient, RecipeTag
-from api.recipes.repositories import (
-    get_full_recipe, get_owned_recipe, 
-    get_recipes_query, get_user_recipe_flags, map_recipe_to_read, get_recipe_query,
-    set_recipe_ingredients, set_recipe_tags, validate_ingredients, validate_tags
-)
+from api.recipes.models import Recipe
+
+from api.recipes.repository.flags import get_user_recipe_flags
+from api.recipes.repository.mappers import map_recipe_to_read
+from api.recipes.repository.mutations import set_recipe_ingredients, set_recipe_tags
+from api.recipes.repository.queries import get_recipes_query
+from api.recipes.repository.services import get_full_recipe, get_owned_recipe
+from api.recipes.repository.validators import validate_ingredients, validate_tags
 from api.recipes.schemas import RecipeCreate, RecipeRead, RecipeUpdate
 from api.core.database import get_db
 from api.users.models import User
@@ -69,8 +71,6 @@ async def download_shopping_cart(
         current_user.id,
         session
     )
-    if not ingredients:
-        GlobalError.bad_request('Список покупок пуст')
     lines = []
     for name, unit, total_amount in ingredients:
         line = f'- {name}: {total_amount} {unit}'
@@ -90,9 +90,7 @@ async def get_recipe(
     session: AsyncSession = Depends(get_db),
     current_user: User  = Depends(get_current_user_optional),
 ) -> RecipeRead: 
-    query = get_recipe_query(id)
-    result = await session.execute(query)
-    recipe = result.scalar_one_or_none()
+    recipe = await get_full_recipe(session, id)
     if not recipe:
         GlobalError.not_found('Рецепт с таким id не найден')
     favorites_set = set()
@@ -130,22 +128,8 @@ async def recipe_create(
     )
     session.add(recipe)
     await session.flush()
-    recipe_ingredients = [
-        RecipeIngredient(
-            recipe_id=recipe.id, 
-            ingredient_id=item.id, 
-            amount=item.amount
-            ) 
-            for item in data.ingredients
-        ]
-    session.add_all(recipe_ingredients)
-    tags = [
-        RecipeTag(
-            recipe_id=recipe.id, 
-            tag_id=tag) 
-            for tag in data.tags
-        ]
-    session.add_all(tags)
+    await set_recipe_ingredients(session, recipe, data.ingredients)
+    await set_recipe_tags(session, recipe, data.tags)
     await session.commit()
     recipe_to_read = await get_full_recipe(session=session, recipe_id=recipe.id)
     return map_recipe_to_read(recipe_to_read, favorites_set=set(), cart_set=set(),)
@@ -192,4 +176,4 @@ async def get_short_link(
         'redirect_short_link',
         id=recipe.id
     ))
-    return ({'short-link': short_link})
+    return {'short-link': short_link}

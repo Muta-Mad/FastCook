@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, status
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.cart.models import ShoppingCart
@@ -7,7 +6,8 @@ from api.cart.schemas import RecipeShort
 from api.core.database import get_db
 from api.core.exceptions import GlobalError
 from api.dependencies import get_current_user
-from api.cart.repository import get_recipe, get_shopping_cart_query, short_recipe
+from api.cart.repository import get_shopping_cart_query
+from api.recipes.repository.base import get_recipe, short_recipe
 from api.users.models import User
 
 
@@ -43,9 +43,10 @@ async def delete_shopping_cart(
     session: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):  
-    query = await session.execute(select(User).where(User.id == id))
-    if not query.scalar_one_or_none():
-        GlobalError.not_found('Пользователь не найден')
+    result = await session.execute(get_recipe(id))
+    recipe = result.scalar_one_or_none()
+    if not recipe:
+        GlobalError.not_found('Рецепт не найден')
     result = await session.execute(get_shopping_cart_query(id, current_user))
     cart = result.scalar_one_or_none()
     if not cart:

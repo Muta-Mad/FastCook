@@ -105,7 +105,6 @@ async def delete_avatar(
     ):
     """Удаление аватара"""
     await repository.update(current_user, avatar=None)
-    return None
 
 @router.post('/set_password/', status_code=status.HTTP_204_NO_CONTENT)
 async def set_password(
@@ -121,7 +120,6 @@ async def set_password(
     if not verified:
         GlobalError.bad_request('Неверный пароль')
     await user_manager._update(user, {'password': data.new_password})
-    return None
 
 @router.post('/{id}/subscribe/', response_model=SubscribeSchemas, status_code=201)
 async def add_subscribe(

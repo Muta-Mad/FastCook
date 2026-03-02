@@ -45,7 +45,6 @@ class RecipeUpdate(BaseModel):
     cooking_time: int | None = Field(default=None, gt=0, description='Время готовки не должно быть не меньше 1')
 
 
-
 class TagRead(BaseModel):
     id: int
     name: str

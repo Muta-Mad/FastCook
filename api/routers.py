@@ -2,11 +2,11 @@ from fastapi import APIRouter
 
 from api.users.auth.views import router as auth_router
 from api.users.views import router as users_router
-from api.recipes.views import router as recipe_router
+from api.recipes.recipes import router as recipe_router
 from api.recipes.tags import router as tag_router
 from api.recipes.ingredients import router as ingredients_router
-from api.cart.views import router as cart_router
-from api.favorite.views import router as favorite_router
+from api.cart.cart import router as cart_router
+from api.favorite.favorite import router as favorite_router
 from api.recipes.redirect_short_link import router as redirect_router
 
 router = APIRouter()
