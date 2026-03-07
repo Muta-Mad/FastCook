@@ -1,34 +1,23 @@
 Установка:
 
-Клонировать репозиторий и перейти в него в командной строке:
+Клонировать репозиторий:
 ```
-git clone git@github.com:Muta-Mad/async-foodgram.git
-cd async-foodgram
+git clone git@github.com:Muta-Mad/FastCook.git
 ```
-Cоздать и активировать виртуальное окружение:
+перейти в директорию бэкенда
 ```
-python3 -m venv venv
+cd fastcook/backend
 ```
-Если у вас Linux/macOS
+создать и заполнить файл .env по примеру из env.template
 ```
-source venv/bin/activate
-```
-Если у вас windows
-```
-source venv/scripts/activate
-```
-Установить зависимости из файла requirements.txt:
-```
-python3 -m pip install --upgrade pip
+перейти в корневую директрорию
 
-pip install -r requirements.txt
 ```
-создать и применить миграции 
+cd fastcook
 ```
-alembic revision --autogenerate -m "название миграции"
-alembic upgrade head
+поднять проект в контейнерах
 ```
-запуск приложения
+docker compose up
 ```
-python main.py
-```
+
+после того как контейнеры поднимуться, проект будет доступен по адресу http://localhost:8000
