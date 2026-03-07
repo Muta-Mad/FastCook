@@ -9,7 +9,7 @@ git clone git@github.com:Muta-Mad/FastCook.git
 cd fastcook/backend
 ```
 создать и заполнить файл .env по примеру из env.template
-для этого перейти в корневую директрорию
+затем перейти в корневую директрорию
 ```
 cd fastcook
 ```
