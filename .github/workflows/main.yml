@@ -139,7 +139,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd fastcook
-            sudo docker compose -f docker-compose.production.yml pull
-            sudo docker compose -f docker-compose.production.yml down
-            sudo docker compose -f docker-compose.production.yml up -d
-            sudo docker compose -f docker-compose.production.yml exec backend alembic upgrade head
+            ~/bin/docker-compose -f docker-compose.production.yml pull
+            ~/bin/docker-compose -f docker-compose.production.yml down
+            ~/bin/docker-compose -f docker-compose.production.yml up -d
+            ~/bin/docker-compose -f docker-compose.production.yml exec -T backend alembic upgrade head
