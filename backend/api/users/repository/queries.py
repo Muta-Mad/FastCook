@@ -20,7 +20,8 @@ def get_user_subscriptions_query(user_id: int):
         .where(Follow.follower_id == user_id)
     )
 
-def created_user(
-        user_create: UserCreate,
-):
+def get_subscribed_author_ids_query(user_id: int):
+    return select(Follow.author_id).where(Follow.follower_id == user_id)
+
+def created_user(user_create: UserCreate):
     return select(User).where(User.username == user_create.username)

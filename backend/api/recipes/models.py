@@ -61,7 +61,8 @@ class Tag(IdPkMixin, Base):
     )
     recipes: Mapped[list['Recipe']] = relationship(
         secondary='recipe_tags',
-        back_populates='tags'
+        back_populates='tags',
+        overlaps='recipe_tags',
     )
     
 
@@ -75,7 +76,8 @@ class Ingredient(IdPkMixin, Base):
     measurement_unit: Mapped[str] = mapped_column(String(length=64))
     recipes: Mapped[list['Recipe']] = relationship(
         secondary='recipe_ingredients',
-        back_populates='ingredients'
+        back_populates='ingredients',
+        overlaps='recipe_ingredients',
     )
 
 
@@ -85,9 +87,10 @@ class RecipeIngredient(IdPkMixin, Base):
     recipe_id: Mapped[int] = mapped_column(ForeignKey('recipes.id', ondelete='CASCADE'))
     ingredient_id: Mapped[int] = mapped_column(ForeignKey('ingredients.id', ondelete='CASCADE'))
     amount: Mapped[int] = mapped_column(SmallInteger)
-    ingredient: Mapped['Ingredient'] = relationship()
+    ingredient: Mapped['Ingredient'] = relationship(overlaps='recipes')
     recipe: Mapped['Recipe'] = relationship(
-        back_populates='recipe_ingredients'
+        back_populates='recipe_ingredients',
+        overlaps='recipes',
     )
 
 
@@ -96,7 +99,8 @@ class RecipeTag(Base):
     __tablename__ = 'recipe_tags'
     recipe_id: Mapped[int] = mapped_column(ForeignKey('recipes.id', ondelete='CASCADE'), primary_key=True)
     tag_id: Mapped[int] = mapped_column(ForeignKey('tags.id', ondelete='CASCADE'), primary_key=True)
-    tag: Mapped['Tag'] = relationship()
+    tag: Mapped['Tag'] = relationship(overlaps='recipes')
     recipe: Mapped['Recipe'] = relationship(
-        back_populates='recipe_tags'
+        back_populates='recipe_tags',
+        overlaps='recipes',
     )

@@ -37,8 +37,8 @@ class RecipeCreate(BaseModel):
 
 
 class RecipeUpdate(BaseModel):
-    ingredients: list['IngredientInRecipeCreate'] = Field(min_length=1)
-    tags: list[int] = Field(min_length=1)
+    ingredients: list['IngredientInRecipeCreate'] | None = Field(default=None, min_length=1)
+    tags: list[int] | None = Field(default=None, min_length=1)
     image: str | None = Field(default=None, min_length=1)
     name: str | None = Field(default=None, min_length=1, max_length=256)
     text: str | None = Field(default=None, min_length=1)

@@ -1,0 +1,52 @@
+version: '3.3'
+
+volumes:
+  pg_data:
+  static:
+
+services:
+  db:
+    image: postgres:13
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    env_file: ./backend/.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: ${DOCKER_USERNAME}/fastcook_backend:latest
+    env_file: ./backend/.env
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    image: ${DOCKER_USERNAME}/fastcook_frontend:latest
+    env_file: ./backend/.env
+    depends_on:
+      - backend
+    command: cp -r /app/build/. /static/
+    volumes:
+      - static:/static/
+
+  nginx:
+    image: ${DOCKER_USERNAME}/fastcook_nginx:latest
+    env_file: ./backend/.env
+    depends_on:
+      - frontend
+      - backend
+    ports:
+      - "8000:80"
+    volumes:
+      - static:/usr/share/nginx/html
+    restart: unless-stopped

@@ -17,6 +17,7 @@ from api.recipes.repository.validators import validate_ingredients, validate_tag
 from api.recipes.schemas import RecipeCreate, RecipeRead, RecipeUpdate
 from api.core.database import get_db
 from api.users.models import User
+from api.users.repository.queries import get_subscribed_author_ids_query
 
 
 router = APIRouter(prefix='/recipes', tags=['Recipes'])
@@ -46,14 +47,17 @@ async def get_recipes(
     )
     recipes = paginated_data['results']
     recipe_ids = [recipe.id for recipe in recipes]
-    favorites_set = set()
-    cart_set = set()
+    favorites_set: set[int] = set()
+    cart_set: set[int] = set()
+    subscribed_ids: set[int] = set()
     if current_user and recipe_ids:
         favorites_set, cart_set = await get_user_recipe_flags(
             session=session, user_id=current_user.id, recipe_ids=recipe_ids
         )
+        result = await session.execute(get_subscribed_author_ids_query(current_user.id))
+        subscribed_ids = set(result.scalars().all())
     recipes_out = [
-        map_recipe_to_read(recipe, favorites_set, cart_set)
+        map_recipe_to_read(recipe, favorites_set, cart_set, subscribed_ids)
         for recipe in recipes
     ]
     return Page(
@@ -96,13 +100,16 @@ async def get_recipe(
     recipe = await get_full_recipe(session, id)
     if not recipe:
         GlobalError.not_found('Рецепт с таким id не найден')
-    favorites_set = set()
-    cart_set = set()
+    favorites_set: set[int] = set()
+    cart_set: set[int] = set()
+    subscribed_ids: set[int] = set()
     if current_user:
         favorites_set, cart_set = await get_user_recipe_flags(
             session=session, user_id=current_user.id, recipe_ids=[recipe.id]
         )
-    return map_recipe_to_read(recipe, favorites_set, cart_set)
+        result = await session.execute(get_subscribed_author_ids_query(current_user.id))
+        subscribed_ids = set(result.scalars().all())
+    return map_recipe_to_read(recipe, favorites_set, cart_set, subscribed_ids)
 
 @router.delete('/{id}/', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_recipe(
@@ -147,8 +154,10 @@ async def recipe_update(
     current_user: User = Depends(get_current_user),
 ):
     """Обновление рецепта по id"""
-    await validate_ingredients(session, new_data.ingredients)
-    await validate_tags(session, new_data.tags)
+    if new_data.ingredients is not None:
+        await validate_ingredients(session, new_data.ingredients)
+    if new_data.tags is not None:
+        await validate_tags(session, new_data.tags)
     recipe = await get_owned_recipe(session, id, current_user.id)
     if new_data.name is not None:
         recipe.name = new_data.name

@@ -4,10 +4,24 @@ from api.users.models import User
 from api.users.schemas import UserRead
 
 
+def map_user_to_read(user: User, subscribed_ids: set[int] | None = None) -> UserRead:
+    is_sub = user.id in subscribed_ids if subscribed_ids is not None else False
+    return UserRead(
+        id=user.id,
+        email=user.email,
+        username=user.username,
+        first_name=user.first_name,
+        last_name=user.last_name,
+        is_subscribed=is_sub,
+        avatar=user.avatar,
+    )
+
+
 def map_recipe_to_read(
     recipe: Recipe,
     favorites_set: set[int],
-    cart_set: set[int]
+    cart_set: set[int],
+    subscribed_ids: set[int] | None = None,
 ) -> RecipeRead:
     ingredients = [
         IngredientInRecipe(
@@ -19,7 +33,7 @@ def map_recipe_to_read(
         for ri in recipe.recipe_ingredients
     ]
     tags = [map_tag_to_read(tag) for tag in recipe.tags]
-    author = map_user_to_read(recipe.author)
+    author = map_user_to_read(recipe.author, subscribed_ids)
     return RecipeRead(
         id=recipe.id,
         author=author,
@@ -32,9 +46,6 @@ def map_recipe_to_read(
         is_favorited=recipe.id in favorites_set,
         is_in_shopping_cart=recipe.id in cart_set,
     )
-
-def map_user_to_read(user: User) -> UserRead:
-    return UserRead.model_validate(user)
 
 def map_tag_to_read(tag: Tag) -> TagRead:
     return TagRead.model_validate(tag)

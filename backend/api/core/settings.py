@@ -34,7 +34,7 @@ class App_Config(BaseModel):
     debug: bool = False
     host: str = '0.0.0.0'
     port: int = 8000
-    reload: bool = True
+    reload: bool = False
 
 class Settings(BaseSettings):
     """Базовые настройки"""

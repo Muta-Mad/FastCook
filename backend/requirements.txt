@@ -1,4 +1,10 @@
 aiosqlite==0.21.0
+httpx==0.27.2
+pytest==8.3.4
+pytest-asyncio==0.23.8
+pytest-cov==5.0.0
+ruff==0.4.4
+slowapi==0.1.9
 alembic==1.17.1
 annotated-doc==0.0.3
 annotated-types==0.7.0

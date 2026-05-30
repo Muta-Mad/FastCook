@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.cart.schemas import RecipeShort
@@ -24,13 +25,13 @@ async def add_favorite(
     recipe = result.scalar_one_or_none()
     if not recipe:
         GlobalError.not_found('Рецепт не найден')
-    query = await session.execute(get_favorite_query(id, current_user))
-    duplicate = query.scalar_one_or_none()
-    if duplicate:
-        GlobalError.bad_request('Рецепт уже в избранном')
     favorite = Favorite(user_id=current_user.id, recipe_id=recipe.id)
     session.add(favorite)
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        GlobalError.bad_request('Рецепт уже в избранном')
     return short_recipe(recipe)
 
 @router.delete('/', status_code=status.HTTP_204_NO_CONTENT)
@@ -47,6 +48,6 @@ async def delete_shopping_cart(
     result = await session.execute(get_favorite_query(id, current_user))
     favorite = result.scalar_one_or_none()
     if not favorite:
-        raise GlobalError.bad_request('Рецепт не в избранном')
+        GlobalError.bad_request('Рецепт не в избранном')
     await session.delete(favorite)
     await session.commit()

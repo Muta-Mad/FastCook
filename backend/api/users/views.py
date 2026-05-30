@@ -8,11 +8,18 @@ from api.core.baserepository import BaseRepository
 from api.core.database import get_db
 from api.core.exceptions import GlobalError
 from api.core.paginate_schemas import Page
-from api.dependencies import get_current_user, get_repository, get_user_manager
+from api.dependencies import get_current_user, get_current_user_optional, get_repository, get_user_manager
+from api.recipes.repository.mappers import map_user_to_read
 from api.users.manager import UserManager
 from api.users.models import User
 from api.users.repository.mappers import get_subscribe_schema
-from api.users.repository.queries import created_user, get_user_by_id, get_user_subscriptions_query
+from api.users.repository.queries import (
+    created_user,
+    get_follow_query,
+    get_subscribed_author_ids_query,
+    get_user_by_id,
+    get_user_subscriptions_query,
+)
 from api.users.repository.services import subscribe_user, unsubscribe_user
 from api.users.schemas import (Avatar, SetPassword, UserCreate, UserRead,
                                UserResponse, SubscribeSchemas)
@@ -61,10 +68,17 @@ async def create_user(
 @router.get('/', response_model=Page[UserRead])
 async def get_users(
     session: AsyncSession = Depends(get_db),
-    paginator: Paginator = Depends(Paginator) 
+    paginator: Paginator = Depends(Paginator),
+    current_user: User | None = Depends(get_current_user_optional),
 ):
     """Список пользователей"""
-    return await paginator.get_paginate(session, User)
+    paginated = await paginator.get_paginate(session, User)
+    subscribed_ids: set[int] = set()
+    if current_user:
+        result = await session.execute(get_subscribed_author_ids_query(current_user.id))
+        subscribed_ids = set(result.scalars().all())
+    paginated['results'] = [map_user_to_read(u, subscribed_ids) for u in paginated['results']]
+    return paginated
 
 @router.get('/me/', response_model=UserRead)
 async def me(user: User = Depends(get_current_user)) -> User:
@@ -74,16 +88,19 @@ async def me(user: User = Depends(get_current_user)) -> User:
 @router.get('/{id}/', response_model=UserRead)
 async def user(
     id: int,
-    session: AsyncSession = Depends(get_db)
-)-> User | None:
+    session: AsyncSession = Depends(get_db),
+    current_user: User | None = Depends(get_current_user_optional),
+) -> UserRead:
     """Профиль пользователя"""
-    result = await session.execute(
-        get_user_by_id(user_id=id)
-    )
+    result = await session.execute(get_user_by_id(user_id=id))
     user = result.scalar_one_or_none()
     if not user:
         GlobalError.not_found('Страница не найдена.')
-    return user
+    is_subscribed = False
+    if current_user and current_user.id != user.id:
+        follow = await session.execute(get_follow_query(current_user.id, user.id))
+        is_subscribed = follow.scalar_one_or_none() is not None
+    return map_user_to_read(user, {user.id} if is_subscribed else set())
 
 @router.put('/me/avatar/', response_model=Avatar)
 async def avatar(
