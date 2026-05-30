@@ -117,6 +117,8 @@ jobs:
       - build_and_push_backend
       - build_and_push_frontend
       - build_and_push_nginx
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
     steps:
       - name: Checkout repo
@@ -137,8 +139,10 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USER }}
           key: ${{ secrets.SSH_KEY }}
+          envs: DOCKER_USERNAME
           script: |
             cd fastcook
+            export DOCKER_USERNAME=$DOCKER_USERNAME
             ~/bin/docker-compose -f docker-compose.production.yml pull
             ~/bin/docker-compose -f docker-compose.production.yml down
             ~/bin/docker-compose -f docker-compose.production.yml up -d
